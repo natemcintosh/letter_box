@@ -1,3 +1,4 @@
+use clap::{App, Arg};
 use itertools::Itertools;
 use std::{
     assert,
@@ -6,10 +7,10 @@ use std::{
 };
 
 fn valid_combos<'a>(
-    valid_words: &'a Vec<String>,
+    valid_words: &'a Vec<&str>,
     sides: &HashMap<i32, HashSet<char>>,
     max_words: &usize,
-) -> Vec<Vec<&'a String>> {
+) -> Vec<Vec<&'a &'a str>> {
     let all_letters: HashSet<_> = sides.values().flatten().cloned().collect();
 
     valid_words
@@ -67,35 +68,61 @@ fn create_sides(letters: &str) -> HashMap<i32, HashSet<char>> {
     );
 
     (1..)
-        .zip(letters.lines().map(|p| p.chars().collect::<HashSet<_>>()))
+        .zip(
+            letters
+                .split_whitespace()
+                .map(|p| p.chars().collect::<HashSet<_>>()),
+        )
         .collect::<HashMap<_, _>>()
 }
 
 fn main() {
     let start_time = time::Instant::now();
 
-    let letters = "car\nimo\nupf\nhnl";
+    let matches = App::new("letter_box")
+        .version("0.1")
+        .author("Nathan McIntosh")
+        .about("Gives you solutions to the letter box puzzle")
+        .arg(Arg::with_name("letters"))
+        .get_matches();
+
+    // let letters = "car\nimo\nupf\nhnl";
+    let letters = matches.value_of("letters").expect("Could not read letters");
+    println!("The letters read in are {:?}", letters);
     let sides = create_sides(letters);
     println!("sides are {:?}", sides);
 
-    let valid_words = fs::read_to_string("/Users/mcintna1/Documents/dataSets/scrabble_words.txt")
+    let read_time = time::Instant::now();
+    let words = fs::read_to_string("/Users/mcintna1/Documents/dataSets/scrabble_words.txt")
         .expect("Unable to read file")
+        .to_lowercase();
+    println!(
+        "Reading file took {} seconds",
+        read_time.elapsed().as_secs_f32()
+    );
+
+    let valid_check_time = time::Instant::now();
+    let valid_words = words
         .lines()
-        .map(|l| l.to_lowercase())
         .filter(|w| word_is_valid(w, &sides))
         .collect_vec();
 
-    println!("Found {} valid words", &valid_words.len());
+    println!(
+        "Found {} valid words in {} seconds",
+        &valid_words.len(),
+        valid_check_time.elapsed().as_secs_f32()
+    );
 
     let combo_start_time = time::Instant::now();
     let combos = valid_combos(&valid_words, &sides, &2);
     println!("Valid combinations are: {:?}", combos);
 
-    println!("Ran in {} seconds", start_time.elapsed().as_secs_f32());
     println!(
         "Found valid combos in {} seconds",
         combo_start_time.elapsed().as_secs_f32()
     );
+
+    println!("Ran in {} seconds", start_time.elapsed().as_secs_f32());
 }
 
 #[cfg(test)]
@@ -116,4 +143,7 @@ mod tests {
     fn test_create_sides_1() {
         create_sides("hi\nbye");
     }
+
+    #[test]
+    fn feature() {}
 }
