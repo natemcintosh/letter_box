@@ -34,25 +34,19 @@ fn valid_combos<'a>(
 fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
     let mut bad_side = 0;
     for l in word.chars() {
-        let filtered_sides = sides
+        if let Some(n) = sides
             .iter()
             .filter(|(&side_number, _side)| side_number != bad_side)
             .filter(|(_side_number, side)| side.contains(&l))
-            .collect::<HashMap<&i32, &HashSet<char>>>();
-
-        assert!(
-            filtered_sides.len() <= 1,
-            "Found matching letters on more than one side: {:?}",
-            filtered_sides
-        );
-
-        if let Some(n) = filtered_sides.keys().last() {
-            bad_side = **n;
+            .map(|(&side_number, _side)| side_number) // get the key
+            .last()
+        {
+            bad_side = n;
         } else {
             return false;
         }
     }
-    true
+    return true;
 }
 
 // fn all_letters_used(words: &Vec<&str>, all_letters: &HashSet<char>) -> bool {
@@ -82,7 +76,7 @@ fn main() {
 
     let letters = "car\nimo\nupf\nhnl";
     let sides = create_sides(letters);
-    println!("mymap is {:?}", sides);
+    println!("sides are {:?}", sides);
 
     let valid_words = fs::read_to_string("/Users/mcintna1/Documents/dataSets/scrabble_words.txt")
         .expect("Unable to read file")
@@ -93,8 +87,33 @@ fn main() {
 
     println!("Found {} valid words", &valid_words.len());
 
+    let combo_start_time = time::Instant::now();
     let combos = valid_combos(&valid_words, &sides, &2);
     println!("Valid combinations are: {:?}", combos);
 
     println!("Ran in {} seconds", start_time.elapsed().as_secs_f32());
+    println!(
+        "Found valid combos in {} seconds",
+        combo_start_time.elapsed().as_secs_f32()
+    );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_words_can_join_1() {
+        assert!(words_can_join("hi", "it"))
+    }
+
+    #[test]
+    fn test_words_can_join_2() {
+        assert_ne!(words_can_join("hold", "nope"), true)
+    }
+
+    #[test]
+    #[should_panic(expected = "Did not hand in a long enough string of letters")]
+    fn test_create_sides_1() {
+        create_sides("hi\nbye");
+    }
 }
