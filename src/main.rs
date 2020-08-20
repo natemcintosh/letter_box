@@ -50,10 +50,32 @@ fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
     return true;
 }
 
-// fn all_letters_used(words: &Vec<&str>, all_letters: &HashSet<char>) -> bool {
-//     let letters_used: HashSet<_> = words.iter().map(|word| word.chars()).flatten().collect();
-//     all_letters.is_subset(&letters_used)
-// }
+fn rank_combos<'a>(mut combos: Vec<Vec<&'a &'a str>>) {
+    // combos.sort_unstable_by(|a, b| a.len().cmp(&b.len()))
+    combos.sort_unstable_by(|a, b| {
+        a.iter()
+            .map(|w| w.len())
+            .sum::<usize>()
+            .cmp(&b.iter().map(|w| w.len()).sum::<usize>())
+    })
+}
+
+fn num_duplicates<'a>(words: Vec<&'a &'a str>) -> u32 {
+    let mut map: HashMap<char, u32> = HashMap::new();
+    let characters = words.into_iter().map(|&w| w.chars()).flatten();
+    for c in characters {
+        if map.contains_key(&c) {
+            match map.get_mut(&c) {
+                Some(count) => *count += 1,
+                None => panic!("Could not retrieve element"),
+            }
+        } else {
+            map.insert(c, 0);
+        }
+    }
+
+    map.values().sum()
+}
 
 fn words_can_join(w1: &str, w2: &str) -> bool {
     let end_of_first = w1.chars().nth_back(0).expect("Could not get last char");
@@ -76,6 +98,14 @@ fn create_sides(letters: &str) -> HashMap<i32, HashSet<char>> {
         .collect::<HashMap<_, _>>()
 }
 
+fn print_combos(combos: &Vec<Vec<&&str>>) {
+    // The idea here is to print each combo as `word1 - word2\n`
+    for c in combos {
+        let joined = c.into_iter().join(" - ");
+        println!("{}", joined)
+    }
+}
+
 fn main() {
     let start_time = time::Instant::now();
 
@@ -86,7 +116,6 @@ fn main() {
         .arg(Arg::with_name("letters"))
         .get_matches();
 
-    // let letters = "car\nimo\nupf\nhnl";
     let letters = matches.value_of("letters").expect("Could not read letters");
     println!("The letters read in are {:?}", letters);
     let sides = create_sides(letters);
@@ -97,7 +126,7 @@ fn main() {
         .expect("Unable to read file")
         .to_lowercase();
     println!(
-        "Reading file took {} seconds",
+        "Reading file took {:.3} seconds",
         read_time.elapsed().as_secs_f32()
     );
 
@@ -108,21 +137,24 @@ fn main() {
         .collect_vec();
 
     println!(
-        "Found {} valid words in {} seconds",
+        "Found {} valid words in {:.3} seconds",
         &valid_words.len(),
         valid_check_time.elapsed().as_secs_f32()
     );
 
     let combo_start_time = time::Instant::now();
     let combos = valid_combos(&valid_words, &sides, &2);
-    println!("Valid combinations are: {:?}", combos);
+    // let ranked_combos = combos.clone();
+    // rank_combos(ranked_combos);
+    println!("Valid combinations are:");
+    print_combos(&combos);
 
     println!(
-        "Found valid combos in {} seconds",
+        "Found valid combos in {:.3} seconds",
         combo_start_time.elapsed().as_secs_f32()
     );
 
-    println!("Ran in {} seconds", start_time.elapsed().as_secs_f32());
+    println!("Ran in {:.3} seconds", start_time.elapsed().as_secs_f32());
 }
 
 #[cfg(test)]
