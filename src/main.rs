@@ -17,6 +17,11 @@ fn valid_combos<'a>(
         .into_iter()
         .permutations(*max_words)
         .filter(|p| {
+            p.iter()
+                .tuple_windows()
+                .all(|(w1, w2)| words_can_join(w1, w2))
+        })
+        .filter(|p| {
             all_letters.is_subset(
                 &p.into_iter()
                     .map(|&w| w.chars())
@@ -24,58 +29,54 @@ fn valid_combos<'a>(
                     .collect::<HashSet<char>>(),
             )
         })
-        .filter(|p| {
-            p.iter()
-                .tuple_windows()
-                .all(|(w1, w2)| words_can_join(w1, w2))
-        })
         .collect_vec()
 }
 
 fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
     let mut bad_side = 0;
     for l in word.chars() {
-        if let Some(n) = sides
+        match sides
             .iter()
             .filter(|(&side_number, _side)| side_number != bad_side)
             .filter(|(_side_number, side)| side.contains(&l))
             .map(|(&side_number, _side)| side_number) // get the key
             .last()
         {
-            bad_side = n;
-        } else {
-            return false;
+            Some(n) => {
+                bad_side = n;
+            }
+            None => return false,
         }
     }
     return true;
 }
 
-fn rank_combos<'a>(mut combos: Vec<Vec<&'a &'a str>>) {
-    // combos.sort_unstable_by(|a, b| a.len().cmp(&b.len()))
-    combos.sort_unstable_by(|a, b| {
-        a.iter()
-            .map(|w| w.len())
-            .sum::<usize>()
-            .cmp(&b.iter().map(|w| w.len()).sum::<usize>())
-    })
-}
+// fn rank_combos<'a>(mut combos: Vec<Vec<&'a &'a str>>) {
+//     // combos.sort_unstable_by(|a, b| a.len().cmp(&b.len()))
+//     combos.sort_unstable_by(|a, b| {
+//         a.iter()
+//             .map(|w| w.len())
+//             .sum::<usize>()
+//             .cmp(&b.iter().map(|w| w.len()).sum::<usize>())
+//     })
+// }
 
-fn num_duplicates<'a>(words: Vec<&'a &'a str>) -> u32 {
-    let mut map: HashMap<char, u32> = HashMap::new();
-    let characters = words.into_iter().map(|&w| w.chars()).flatten();
-    for c in characters {
-        if map.contains_key(&c) {
-            match map.get_mut(&c) {
-                Some(count) => *count += 1,
-                None => panic!("Could not retrieve element"),
-            }
-        } else {
-            map.insert(c, 0);
-        }
-    }
-
-    map.values().sum()
-}
+// fn num_duplicates<'a>(words: Vec<&'a &'a str>) -> u32 {
+//     let mut map: HashMap<char, u32> = HashMap::new();
+//     let characters = words.into_iter().map(|&w| w.chars()).flatten();
+//     for c in characters {
+//         if map.contains_key(&c) {
+//             match map.get_mut(&c) {
+//                 Some(count) => *count += 1,
+//                 None => panic!("Could not retrieve element"),
+//             }
+//         } else {
+//             map.insert(c, 0);
+//         }
+//     }
+//
+//     map.values().sum()
+// }
 
 fn words_can_join(w1: &str, w2: &str) -> bool {
     let end_of_first = w1.chars().nth_back(0).expect("Could not get last char");
@@ -177,5 +178,14 @@ mod tests {
     }
 
     #[test]
-    fn feature() {}
+    fn test_word_is_valid_1() {
+        let sides = create_sides("cmo fus nir eph");
+        assert!(word_is_valid("ship", &sides));
+    }
+
+    #[test]
+    fn test_word_is_valid_2() {
+        let sides = create_sides("cmo fus nir eph");
+        assert_eq!(word_is_valid("hello", &sides), false);
+    }
 }
