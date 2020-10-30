@@ -1,5 +1,6 @@
 use clap::{App, Arg};
 use itertools::Itertools;
+use num_bigint::BigUint;
 use std::{
     assert,
     collections::{HashMap, HashSet},
@@ -13,6 +14,10 @@ fn valid_combos<'a>(
 ) -> Vec<Vec<&'a &'a str>> {
     let all_letters: HashSet<_> = sides.values().flatten().cloned().collect();
 
+    let n_perms =
+        factorial(valid_words.len() as u64) / factorial((valid_words.len() - max_words) as u64);
+    println!("There are {} permutations to check", n_perms);
+
     valid_words
         .into_iter()
         .permutations(*max_words)
@@ -21,15 +26,16 @@ fn valid_combos<'a>(
                 .tuple_windows()
                 .all(|(w1, w2)| words_can_join(w1, w2))
         })
-        .filter(|p| {
-            all_letters.is_subset(
-                &p.into_iter()
-                    .map(|&w| w.chars())
-                    .flatten()
-                    .collect::<HashSet<char>>(),
-            )
-        })
+        .filter(|p| all_letters.is_subset(&get_unique_chars(p)))
         .collect_vec()
+}
+
+fn get_unique_chars(words: &Vec<&&str>) -> HashSet<char> {
+    words
+        .iter()
+        .map(|&w| w.chars())
+        .flatten()
+        .collect::<HashSet<_>>()
 }
 
 fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
@@ -107,6 +113,10 @@ fn print_combos(combos: &Vec<Vec<&&str>>) {
     }
 }
 
+fn factorial(n: u64) -> BigUint {
+    (1..=n).product()
+}
+
 fn main() {
     let start_time = time::Instant::now();
 
@@ -115,9 +125,20 @@ fn main() {
         .author("Nathan McIntosh")
         .about("Gives you solutions to the letter box puzzle")
         .arg(Arg::with_name("letters"))
+        .arg(
+            Arg::with_name("n")
+                .help("How many words in your solutions")
+                .required(false)
+                .default_value("2"),
+        )
         .get_matches();
 
     let letters = matches.value_of("letters").expect("Could not read letters");
+    let n_words: usize = matches
+        .value_of("n")
+        .expect("Could not get number of words")
+        .parse()
+        .expect("Could not parse into a number");
     println!("The letters read in are {:?}", letters);
     let sides = create_sides(letters);
     println!("sides are {:?}", sides);
@@ -144,7 +165,7 @@ fn main() {
     );
 
     let combo_start_time = time::Instant::now();
-    let combos = valid_combos(&valid_words, &sides, &2);
+    let combos = valid_combos(&valid_words, &sides, &n_words);
     // let ranked_combos = combos.clone();
     // rank_combos(ranked_combos);
     println!("Valid combinations are:");
