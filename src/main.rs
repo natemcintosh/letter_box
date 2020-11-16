@@ -11,7 +11,7 @@ fn valid_combos<'a>(
     valid_words: &'a Vec<&str>,
     sides: &HashMap<i32, HashSet<char>>,
     max_words: &usize,
-) -> Vec<Vec<&'a &'a str>> {
+) -> impl Iterator<Item = Vec<&'a &'a str>> {
     let all_letters: HashSet<_> = sides.values().flatten().cloned().collect();
 
     let n_perms =
@@ -19,15 +19,14 @@ fn valid_combos<'a>(
     println!("There are {} permutations to check", n_perms);
 
     valid_words
-        .into_iter()
+        .iter()
         .permutations(*max_words)
         .filter(|p| {
             p.iter()
                 .tuple_windows()
                 .all(|(w1, w2)| words_can_join(w1, w2))
         })
-        .filter(|p| all_letters.is_subset(&get_unique_chars(p)))
-        .collect_vec()
+        .filter(move |p| all_letters.is_subset(&get_unique_chars(p)))
 }
 
 fn get_unique_chars(words: &Vec<&&str>) -> HashSet<char> {
@@ -105,14 +104,6 @@ fn create_sides(letters: &str) -> HashMap<i32, HashSet<char>> {
         .collect::<HashMap<_, _>>()
 }
 
-fn print_combos(combos: &Vec<Vec<&&str>>) {
-    // The idea here is to print each combo as `word1 - word2\n`
-    for c in combos {
-        let joined = c.into_iter().join(" - ");
-        println!("{}", joined)
-    }
-}
-
 fn factorial(n: u64) -> BigUint {
     (1..=n).product()
 }
@@ -165,11 +156,11 @@ fn main() {
     );
 
     let combo_start_time = time::Instant::now();
-    let combos = valid_combos(&valid_words, &sides, &n_words);
-    // let ranked_combos = combos.clone();
-    // rank_combos(ranked_combos);
-    println!("Valid combinations are:");
-    print_combos(&combos);
+    let v = valid_combos(&valid_words, &sides, &n_words);
+    v.for_each(|pair| {
+        let joined = pair.into_iter().join(" - ");
+        println!("{}", joined)
+    });
 
     println!(
         "Found valid combos in {:.3} seconds",
