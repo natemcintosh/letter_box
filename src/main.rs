@@ -56,33 +56,6 @@ fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
     return true;
 }
 
-// fn rank_combos<'a>(mut combos: Vec<Vec<&'a &'a str>>) {
-//     // combos.sort_unstable_by(|a, b| a.len().cmp(&b.len()))
-//     combos.sort_unstable_by(|a, b| {
-//         a.iter()
-//             .map(|w| w.len())
-//             .sum::<usize>()
-//             .cmp(&b.iter().map(|w| w.len()).sum::<usize>())
-//     })
-// }
-
-// fn num_duplicates<'a>(words: Vec<&'a &'a str>) -> u32 {
-//     let mut map: HashMap<char, u32> = HashMap::new();
-//     let characters = words.into_iter().map(|&w| w.chars()).flatten();
-//     for c in characters {
-//         if map.contains_key(&c) {
-//             match map.get_mut(&c) {
-//                 Some(count) => *count += 1,
-//                 None => panic!("Could not retrieve element"),
-//             }
-//         } else {
-//             map.insert(c, 0);
-//         }
-//     }
-//
-//     map.values().sum()
-// }
-
 fn words_can_join(w1: &str, w2: &str) -> bool {
     let end_of_first = w1.chars().nth_back(0).expect("Could not get last char");
     let start_of_second = w2.chars().nth(0).expect("Could not get first char");
