@@ -85,15 +85,25 @@ fn main() {
     let start_time = time::Instant::now();
 
     let matches = App::new("letter_box")
-        .version("0.1")
+        .version("0.2")
         .author("Nathan McIntosh")
         .about("Gives you solutions to the letter box puzzle")
         .arg(Arg::with_name("letters"))
         .arg(
             Arg::with_name("n")
+                .short("n")
+                .long("number_of_words")
                 .help("How many words in your solutions")
                 .required(false)
                 .default_value("2"),
+        )
+        .arg(
+            Arg::with_name("dictionary_file")
+                .short("d_file")
+                .long("dictionary_file")
+                .help("Path to file of words that should be used")
+                .required(false)
+                .default_value("scrabble_words.txt"),
         )
         .get_matches();
 
@@ -108,7 +118,10 @@ fn main() {
     println!("sides are {:?}", sides);
 
     let read_time = time::Instant::now();
-    let words = fs::read_to_string("/Users/mcintna1/Documents/dataSets/scrabble_words.txt")
+    let file_path = matches
+        .value_of("dictionary_file")
+        .expect("Did not properly get the name of the dictionary file");
+    let words = fs::read_to_string(file_path)
         .expect("Unable to read file")
         .to_lowercase();
     println!(
