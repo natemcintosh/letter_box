@@ -38,17 +38,17 @@ fn get_unique_chars(words: &Vec<&&str>) -> HashSet<char> {
 }
 
 fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
-    let mut bad_side = 0;
+    let mut last_used_side = 0;
     for l in word.chars() {
         match sides
             .iter()
-            .filter(|(&side_number, _side)| side_number != bad_side)
+            .filter(|(&side_number, _side)| side_number != last_used_side)
             .filter(|(_side_number, side)| side.contains(&l))
             .map(|(&side_number, _side)| side_number) // get the key
             .last()
         {
             Some(n) => {
-                bad_side = n;
+                last_used_side = n;
             }
             None => return false,
         }
