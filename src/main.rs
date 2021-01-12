@@ -16,7 +16,7 @@ fn valid_permutations<'a>(
 
     let n_perms =
         factorial(valid_words.len() as u64) / factorial((valid_words.len() - max_words) as u64);
-    println!("There are {} permutations to check", n_perms);
+    println!("There are {} permutations to check\n", n_perms);
 
     valid_words
         .iter()
@@ -152,11 +152,11 @@ fn main() {
     });
 
     println!(
-        "Found valid permutations in {:.3} seconds",
+        "\nFound valid permutations in {:.3} seconds",
         permutation_start_time.elapsed().as_secs_f32()
     );
 
-    println!("Ran in {:.3} seconds", start_time.elapsed().as_secs_f32());
+    println!("letter_box.rs -- {:.3} seconds", start_time.elapsed().as_secs_f32());
 }
 
 #[cfg(test)]
