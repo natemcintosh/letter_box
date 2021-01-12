@@ -7,7 +7,7 @@ use std::{
     fs, time,
 };
 
-fn valid_combos<'a>(
+fn valid_permutations<'a>(
     valid_words: &'a Vec<&str>,
     sides: &HashMap<i32, HashSet<char>>,
     max_words: &usize,
@@ -128,16 +128,16 @@ fn main() {
         valid_check_time.elapsed().as_secs_f32()
     );
 
-    let combo_start_time = time::Instant::now();
-    let v = valid_combos(&valid_words, &sides, &n_words);
+    let permutation_start_time = time::Instant::now();
+    let v = valid_permutations(&valid_words, &sides, &n_words);
     v.for_each(|pair| {
         let joined = pair.into_iter().join(" - ");
         println!("{}", joined)
     });
 
     println!(
-        "Found valid combos in {:.3} seconds",
-        combo_start_time.elapsed().as_secs_f32()
+        "Found valid permutations in {:.3} seconds",
+        permutation_start_time.elapsed().as_secs_f32()
     );
 
     println!("Ran in {:.3} seconds", start_time.elapsed().as_secs_f32());
