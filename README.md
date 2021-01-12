@@ -1,9 +1,19 @@
 # letter_box
 ### Author: Nathan McIntosh
-
+---
+### About
 This rust program produces a binary which solves the [NYT Letter Boxed](https://www.nytimes.com/puzzles/letter-boxed) puzzle game. 
 
-The strategy is as follows:
+---
+### Compiling and Running
+1. Make sure you have the [Rust programing language](https://www.rust-lang.org) installed
+1. Clone this repo to a location on your computer: `git clone https://github.com/natemcintosh/letter_box.git`
+1. Build in release mode: `cargo build --release`
+1. Run the produced binary asking for help to see all options: `./target/release/letter_box -h`
+1. Run the binary on the puzzle inputs for the day, e.g.: `./target/release/letter_box "abc def ghi jkl"`
+
+---
+### Strategy for solving the puzzle
 1. Create a HashMap of the sides of the box in `create_sides()`. The keys are integers from 1 to 4. The values are HashSets of the characters on that side. 
 1. Read in a file of valid words. A file of valid scrabble words has been included. If I find something closer to a list of valid words in the English language, I'll swap that in. 
 1. Determine which words from the list can actually fit into the box by filtering the list with the `word_is_valid()` function. 
