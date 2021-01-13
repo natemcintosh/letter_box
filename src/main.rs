@@ -145,8 +145,7 @@ fn main() {
     );
 
     let permutation_start_time = time::Instant::now();
-    let v = valid_permutations(&valid_words, &sides, &n_words);
-    v.for_each(|pair| {
+    valid_permutations(&valid_words, &sides, &n_words).for_each(|pair| {
         let joined = pair.into_iter().join(" - ");
         println!("{}", joined)
     });
@@ -156,7 +155,10 @@ fn main() {
         permutation_start_time.elapsed().as_secs_f32()
     );
 
-    println!("letter_box.rs -- {:.3} seconds", start_time.elapsed().as_secs_f32());
+    println!(
+        "letter_box.rs -- {:.3} seconds",
+        start_time.elapsed().as_secs_f32()
+    );
 }
 
 #[cfg(test)]
