@@ -150,8 +150,7 @@ potentially take a while to run.",
     );
 
     let permutation_start_time = time::Instant::now();
-    let v = valid_permutations(&valid_words, &sides, &n_words);
-    v.for_each(|pair| {
+    valid_permutations(&valid_words, &sides, &n_words).for_each(|pair| {
         let joined = pair.into_iter().join(" - ");
         println!("{}", joined)
     });
