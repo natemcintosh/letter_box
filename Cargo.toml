@@ -1,6 +1,6 @@
 [package]
 name = "letter_box"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Nathan McIntosh <Nathan.McIntosh@jhuapl.edu>"]
 edition = "2018"
 

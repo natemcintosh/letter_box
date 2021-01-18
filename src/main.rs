@@ -84,31 +84,35 @@ fn factorial(n: u64) -> BigUint {
 fn main() {
     let start_time = time::Instant::now();
 
-    let matches =
-        App::new("letter_box")
-            .version("0.2.1")
-            .author("Nathan McIntosh")
-            .about("Gives you solutions to the letter boxed puzzle")
-            .arg(Arg::with_name("letters").help(
-                "The letters on each side of the box, in quotes and space separated. E.g. \"abc def ghi jkl\"",
-            ))
-            .arg(
-                Arg::with_name("n")
-                    .short("n")
-                    .long("number_of_words")
-                    .help("How many words in your solutions")
-                    .required(false)
-                    .default_value("2"),
-            )
-            .arg(
-                Arg::with_name("dictionary_file")
-                    .short("d_file")
-                    .long("dictionary_file")
-                    .help("Path to file of words that should be used")
-                    .required(false)
-                    .default_value("scrabble_words.txt"),
-            )
-            .get_matches();
+    let matches = App::new("letter_box")
+        .version("0.3.0")
+        .author("Nathan McIntosh")
+        .about("Gives you solutions to the letter boxed puzzle")
+        .arg(Arg::with_name("letters").help(
+            "The letters on each side of the box, in quotes and space separated. 
+E.g. \"abc def ghi jkl\". 
+Order of sides does not matter. Order of letters on sides does not matter",
+        ))
+        .arg(
+            Arg::with_name("n")
+                .short("n")
+                .long("number_of_words")
+                .help(
+                    "How many words in your solutions. More than 2 could 
+potentially take a while to run.",
+                )
+                .required(false)
+                .default_value("2"),
+        )
+        .arg(
+            Arg::with_name("dictionary_file")
+                .short("d_file")
+                .long("dictionary_file")
+                .help("Path to file of words that should be used")
+                .required(false)
+                .default_value("american_english_dictionary.txt"),
+        )
+        .get_matches();
 
     let letters = matches.value_of("letters").expect("Could not read letters");
     let n_words: usize = matches
@@ -135,6 +139,7 @@ fn main() {
     let valid_check_time = time::Instant::now();
     let valid_words = words
         .lines()
+        .filter(|&w| !w.ends_with("'s"))
         .filter(|w| word_is_valid(w, &sides))
         .collect_vec();
 
@@ -156,7 +161,10 @@ fn main() {
         permutation_start_time.elapsed().as_secs_f32()
     );
 
-    println!("letter_box.rs -- {:.3} seconds", start_time.elapsed().as_secs_f32());
+    println!(
+        "letter_box.rs -- {:.3} seconds",
+        start_time.elapsed().as_secs_f32()
+    );
 }
 
 #[cfg(test)]
