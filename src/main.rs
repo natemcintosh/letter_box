@@ -14,10 +14,6 @@ fn valid_permutations<'a>(
 ) -> impl Iterator<Item = Vec<&'a &'a str>> {
     let all_letters: HashSet<_> = sides.values().flatten().cloned().collect();
 
-    let n_perms =
-        factorial(valid_words.len() as u64) / factorial((valid_words.len() - max_words) as u64);
-    println!("There are {} permutations to check\n", n_perms);
-
     valid_words
         .iter()
         .permutations(*max_words)
@@ -120,9 +116,7 @@ potentially take a while to run.",
         .expect("Could not get number of words")
         .parse()
         .expect("Could not parse into a number");
-    println!("The letters read in are {:?}", letters);
     let sides = create_sides(letters);
-    println!("sides are {:?}", sides);
 
     let read_time = time::Instant::now();
     let file_path = matches
@@ -155,9 +149,12 @@ potentially take a while to run.",
         println!("{}", joined)
     });
 
+    let n_perms =
+        factorial(valid_words.len() as u64) / factorial((valid_words.len() - n_words) as u64);
+    let perm_run_time = permutation_start_time.elapsed().as_secs_f64();
     println!(
-        "\nFound valid permutations in {:.3} seconds",
-        permutation_start_time.elapsed().as_secs_f32()
+        "Found {} permutations in {:.3} seconds\n",
+        n_perms, perm_run_time
     );
 
     println!(
