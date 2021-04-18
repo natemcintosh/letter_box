@@ -131,11 +131,13 @@ potentially take a while to run.",
     );
 
     let valid_check_time = time::Instant::now();
-    let valid_words = words
+    let mut valid_words = words
         .lines()
         .filter(|&w| !w.ends_with("'s"))
         .filter(|w| word_is_valid(w, &sides))
         .collect_vec();
+    valid_words.sort_unstable();
+    valid_words.dedup();
 
     println!(
         "Found {} valid words in {:.3} seconds",
