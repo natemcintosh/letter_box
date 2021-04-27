@@ -81,7 +81,7 @@ fn main() {
     let start_time = time::Instant::now();
 
     let matches = App::new("letter_box")
-        .version("0.3.0")
+        .version("0.4.0")
         .author("Nathan McIntosh")
         .about("Gives you solutions to the letter boxed puzzle")
         .arg(Arg::with_name("letters").help(
