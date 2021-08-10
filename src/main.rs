@@ -1,22 +1,18 @@
 use clap::{App, Arg};
 use itertools::Itertools;
 use num_bigint::BigUint;
-use std::{
-    assert,
-    collections::{HashMap, HashSet},
-    fs, time,
-};
+use std::{assert, char, collections::HashSet, fs, time};
 
 fn valid_permutations<'a>(
-    valid_words: &'a Vec<&str>,
-    sides: &HashMap<i32, HashSet<char>>,
-    max_words: &usize,
+    valid_words: &'a [&str],
+    sides: &[[std::primitive::char; 3]; 4],
+    max_words: usize,
 ) -> impl Iterator<Item = Vec<&'a &'a str>> {
-    let all_letters: HashSet<_> = sides.values().flatten().cloned().collect();
+    let all_letters: HashSet<_> = sides.iter().flatten().copied().collect();
 
     valid_words
         .iter()
-        .permutations(*max_words)
+        .permutations(max_words)
         .filter(|p| {
             p.iter()
                 .tuple_windows()
@@ -25,22 +21,22 @@ fn valid_permutations<'a>(
         .filter(move |p| all_letters.is_subset(&get_unique_chars(p)))
 }
 
-fn get_unique_chars(words: &Vec<&&str>) -> HashSet<char> {
+fn get_unique_chars(words: &[&&str]) -> HashSet<char> {
     words
         .iter()
-        .map(|&w| w.chars())
-        .flatten()
+        .flat_map(|&&w| w.chars())
         .collect::<HashSet<_>>()
 }
 
-fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
-    let mut last_used_side = 0;
+fn word_is_valid(word: &str, sides: &[[std::primitive::char; 3]; 4]) -> bool {
+    let mut last_used_side: usize = 0;
     for l in word.chars() {
         match sides
             .iter()
-            .filter(|(&side_number, _side)| side_number != last_used_side)
-            .filter(|(_side_number, side)| side.contains(&l))
-            .map(|(&side_number, _side)| side_number) // get the key
+            .enumerate()
+            .filter(|(side_num, _side)| side_num != &last_used_side)
+            .filter(|(_side_num, &side)| side.contains(&l))
+            .map(|(side_num, _)| side_num)
             .last()
         {
             Some(n) => {
@@ -49,28 +45,38 @@ fn word_is_valid(word: &str, sides: &HashMap<i32, HashSet<char>>) -> bool {
             None => return false,
         }
     }
-    return true;
+    true
 }
 
 fn words_can_join(w1: &str, w2: &str) -> bool {
     let end_of_first = w1.chars().nth_back(0).expect("Could not get last char");
-    let start_of_second = w2.chars().nth(0).expect("Could not get first char");
+    let start_of_second = w2.chars().next().expect("Could not get first char");
     end_of_first == start_of_second
 }
 
-fn create_sides(letters: &str) -> HashMap<i32, HashSet<char>> {
+fn create_sides(letters: &str) -> [[std::primitive::char; 3]; 4] {
     assert!(
         letters.len() >= 12,
         "Did not hand in a long enough string of letters"
     );
 
-    (1..)
-        .zip(
-            letters
-                .split_whitespace()
-                .map(|p| p.chars().collect::<HashSet<_>>()),
-        )
-        .collect::<HashMap<_, _>>()
+    // (1..)
+    //     .zip(
+    //         letters
+    //             .split_whitespace()
+    //             .map(|p| p.chars().collect::<HashSet<_>>()),
+    //     )
+    //     .collect::<HashMap<_, _>>()
+
+    // letters.split_whitespace().map(|p| p.chars.collect::<>())
+
+    let mut res = [[' '; 3]; 4];
+    for (side_num, side) in letters.split_whitespace().enumerate() {
+        for (side_idx, c) in side.chars().enumerate() {
+            res[side_num][side_idx] = c;
+        }
+    }
+    res
 }
 
 fn factorial(n: u64) -> BigUint {
@@ -146,16 +152,16 @@ potentially take a while to run.",
     );
 
     let permutation_start_time = time::Instant::now();
-    valid_permutations(&valid_words, &sides, &n_words).for_each(|pair| {
+    valid_permutations(&valid_words, &sides, n_words).for_each(|pair| {
         let joined = pair.into_iter().join(" - ");
-        println!("{}", joined)
+        println!("{}", joined);
     });
 
     let n_perms =
         factorial(valid_words.len() as u64) / factorial((valid_words.len() - n_words) as u64);
     let perm_run_time = permutation_start_time.elapsed().as_secs_f64();
     println!(
-        "Found {} permutations in {:.3} seconds\n",
+        "Went through {} permutations in {:.3} seconds\n",
         n_perms, perm_run_time
     );
 
