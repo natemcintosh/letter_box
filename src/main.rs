@@ -161,7 +161,7 @@ potentially take a while to run.",
         factorial(valid_words.len() as u64) / factorial((valid_words.len() - n_words) as u64);
     let perm_run_time = permutation_start_time.elapsed().as_secs_f64();
     println!(
-        "Went through {} permutations in {:.3} seconds\n",
+        "Examined {} permutations in {:.3} seconds\n",
         n_perms, perm_run_time
     );
 
