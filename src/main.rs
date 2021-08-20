@@ -60,17 +60,8 @@ fn create_sides(letters: &str) -> [[std::primitive::char; 3]; 4] {
         "Did not hand in a long enough string of letters"
     );
 
-    // (1..)
-    //     .zip(
-    //         letters
-    //             .split_whitespace()
-    //             .map(|p| p.chars().collect::<HashSet<_>>()),
-    //     )
-    //     .collect::<HashMap<_, _>>()
-
-    // letters.split_whitespace().map(|p| p.chars.collect::<>())
-
     let mut res = [[' '; 3]; 4];
+
     for (side_num, side) in letters.split_whitespace().enumerate() {
         for (side_idx, c) in side.chars().enumerate() {
             res[side_num][side_idx] = c;
@@ -200,5 +191,23 @@ mod tests {
     fn test_word_is_valid_2() {
         let sides = create_sides("cmo fus nir eph");
         assert_eq!(word_is_valid("hello", &sides), false);
+    }
+
+    #[test]
+    fn test_word_is_valid_3() {
+        let sides = create_sides("elk moc jwb ura");
+        assert!(word_is_valid("jamb", &sides));
+    }
+
+    #[test]
+    fn test_word_is_valid_4() {
+        let sides = create_sides("elk moc jwb ura");
+        assert!(word_is_valid("blower", &sides));
+    }
+
+    #[test]
+    fn test_word_is_valid_5() {
+        let sides = create_sides("elk moc jwb ura");
+        assert!(word_is_valid("roebuck", &sides));
     }
 }
