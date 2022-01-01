@@ -84,14 +84,14 @@ fn main() {
         .version("0.3.0")
         .author("Nathan McIntosh")
         .about("Gives you solutions to the letter boxed puzzle")
-        .arg(Arg::with_name("letters").help(
+        .arg(Arg::new("letters").help(
             "The letters on each side of the box, in quotes and space separated. 
 E.g. \"abc def ghi jkl\". 
 Order of sides does not matter. Order of letters on sides does not matter",
         ))
         .arg(
-            Arg::with_name("n")
-                .short("n")
+            Arg::new("n")
+                .short('n')
                 .long("number_of_words")
                 .help(
                     "How many words in your solutions. More than 2 could 
@@ -101,8 +101,8 @@ potentially take a while to run.",
                 .default_value("2"),
         )
         .arg(
-            Arg::with_name("dictionary_file")
-                .short("d_file")
+            Arg::new("dictionary_file")
+                .short('d')
                 .long("dictionary_file")
                 .help("Path to file of words that should be used")
                 .required(false)
