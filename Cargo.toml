@@ -8,5 +8,5 @@ edition = "2021"
 
 [dependencies]
 itertools = "0.10.0"
-clap = "2.33.0"
+clap = "3"
 num-bigint = "0.2.6"
