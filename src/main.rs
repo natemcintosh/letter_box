@@ -119,9 +119,7 @@ potentially take a while to run.",
     let file_path = matches
         .value_of("dictionary_file")
         .expect("Did not properly get the name of the dictionary file");
-    let words = fs::read_to_string(file_path)
-        .expect("Unable to read file")
-        .to_lowercase();
+    let words = fs::read_to_string(file_path).expect("Unable to read file");
     println!(
         "Reading file took {:.3} seconds",
         read_time.elapsed().as_secs_f32()
@@ -130,6 +128,7 @@ potentially take a while to run.",
     let valid_check_time = time::Instant::now();
     let mut valid_words = words
         .lines()
+        .filter(|s| !s.contains(char::is_uppercase))
         .filter(|&w| !w.ends_with("'s"))
         .filter(|w| word_is_valid(w, &sides))
         .collect_vec();
