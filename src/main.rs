@@ -82,8 +82,8 @@ fn main() {
         .author("Nathan McIntosh")
         .about("Gives you solutions to the letter boxed puzzle")
         .arg(Arg::new("letters").help(
-            "The letters on each side of the box, in quotes and space separated. 
-E.g. \"abc def ghi jkl\". 
+            "The letters on each side of the box, in quotes and space separated.
+E.g. \"abc def ghi jkl\".
 Order of sides does not matter. Order of letters on sides does not matter",
         ))
         .arg(
@@ -91,7 +91,7 @@ Order of sides does not matter. Order of letters on sides does not matter",
                 .short('n')
                 .long("number_of_words")
                 .help(
-                    "How many words in your solutions. More than 2 could 
+                    "How many words in your solutions. More than 2 could
 potentially take a while to run.",
                 )
                 .required(false)
