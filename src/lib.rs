@@ -18,14 +18,15 @@ impl Board {
         for ch in word.chars() {
             let mut found = false;
             for (row_idx, row) in self.letters.iter().enumerate() {
-                if row.contains(&ch) {
+                // If this letter is in this row
+                if let Some(col_idx) = row.iter().position(|&c| c == ch) {
                     if let Some(prev_row) = previous_row {
                         if prev_row == row_idx {
-                            return None; // Consecutive letters in the same row
+                            // Consecutive letters in the same row
+                            return None;
                         }
                     }
-                    let col_idx = row.iter().position(|&c| c == ch).unwrap();
-                    let pos = (row_idx * 4 + col_idx) as u16;
+                    let pos = (row_idx * 4 + col_idx) as u8;
 
                     if start.is_none() {
                         start = Some(pos);
@@ -38,7 +39,8 @@ impl Board {
                 }
             }
             if !found {
-                return None; // Letter not found on the board
+                // Letter not found on the board
+                return None;
             }
         }
 
@@ -56,9 +58,9 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    #[case("ABCD", Some(BoardEncodedWord { start: 0, end: 12, spots_filled: 0b0000000100000001 }))]
+    #[case("AEIP", Some(BoardEncodedWord { start: 0, end: 15, spots_filled: 0b1000000100010001 }))]
+    #[case("PLHD", Some(BoardEncodedWord { start: 15, end: 3, spots_filled: 0b1000100010001000 }))]
     #[case("AAAA", None)]
-    #[case("WXYZ", Some(BoardEncodedWord { start: 3, end: 15, spots_filled: 0b1000000000001000 }))]
     #[case("ABCA", None)]
     #[case("ABX", None)]
     fn test_encode_word(#[case] word: &str, #[case] expected: Option<BoardEncodedWord>) {
@@ -80,9 +82,9 @@ mod tests {
 /// Represents a word encoded with its position and filled spots on a board.
 pub struct BoardEncodedWord {
     /// The starting position of the word on the board.
-    start: u16,
+    start: u8,
     /// The ending position of the word on the board.
-    end: u16,
+    end: u8,
     /// A bitmask representing the spots filled by the word on the board.
     spots_filled: u16,
 }
