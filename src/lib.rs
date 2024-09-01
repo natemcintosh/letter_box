@@ -1,9 +1,13 @@
 use itertools::Itertools;
 
 #[derive(Debug, Clone, Copy)]
+/// Represents a word encoded with its position and filled spots on a board.
 pub struct BoardEncodedWord {
+    /// The starting position of the word on the board.
     start: u16,
+    /// The ending position of the word on the board.
     end: u16,
+    /// A bitmask representing the spots filled by the word on the board.
     spots_filled: u16,
 }
 
