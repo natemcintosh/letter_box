@@ -14,3 +14,6 @@ num-bigint = "0.2.6"
 [profile.release]
 lto = true
 
+[dev-dependencies]
+rstest = "0.22.0"
+
