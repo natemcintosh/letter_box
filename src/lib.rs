@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use itertools::Itertools;
 
 pub struct Board {
@@ -110,4 +112,35 @@ pub fn valid_permutations<'a>(
         .permutations(max_words)
         .filter(|p| p.iter().tuple_windows().all(|(w1, w2)| w1.end == w2.start))
         .filter(|p| p.iter().fold(0, |acc, x| acc | x.spots_filled) == u16::MAX)
+}
+
+fn old_valid_permutations<'a>(
+    valid_words: &'a [&str],
+    sides: &[[std::primitive::char; 3]; 4],
+    max_words: usize,
+) -> impl Iterator<Item = Vec<&'a &'a str>> {
+    let all_letters: HashSet<_> = sides.iter().flatten().copied().collect();
+
+    valid_words
+        .iter()
+        .permutations(max_words)
+        .filter(|p| {
+            p.iter()
+                .tuple_windows()
+                .all(|(w1, w2)| words_can_join(w1, w2))
+        })
+        .filter(move |p| all_letters.is_subset(&get_unique_chars(p)))
+}
+
+fn get_unique_chars(words: &[&&str]) -> HashSet<char> {
+    words
+        .iter()
+        .flat_map(|&&w| w.chars())
+        .collect::<HashSet<_>>()
+}
+
+fn words_can_join(w1: &str, w2: &str) -> bool {
+    let end_of_first = w1.chars().nth_back(0).expect("Could not get last char");
+    let start_of_second = w2.chars().next().expect("Could not get first char");
+    end_of_first == start_of_second
 }
