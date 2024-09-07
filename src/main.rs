@@ -1,139 +1,62 @@
-use clap::{App, Arg};
+use clap::Parser;
 use itertools::Itertools;
+use letter_box::{valid_permutations, Board, BoardEncodedWord};
 use num_bigint::BigUint;
-use std::{assert, char, collections::HashSet, fs, time};
-
-fn valid_permutations<'a>(
-    valid_words: &'a [&str],
-    sides: &[[std::primitive::char; 3]; 4],
-    max_words: usize,
-) -> impl Iterator<Item = Vec<&'a &'a str>> {
-    let all_letters: HashSet<_> = sides.iter().flatten().copied().collect();
-
-    valid_words
-        .iter()
-        .permutations(max_words)
-        .filter(|p| {
-            p.iter()
-                .tuple_windows()
-                .all(|(w1, w2)| words_can_join(w1, w2))
-        })
-        .filter(move |p| all_letters.is_subset(&get_unique_chars(p)))
-}
-
-fn get_unique_chars(words: &[&&str]) -> HashSet<char> {
-    words
-        .iter()
-        .flat_map(|&&w| w.chars())
-        .collect::<HashSet<_>>()
-}
-
-fn word_is_valid(word: &str, sides: &[[std::primitive::char; 3]; 4]) -> bool {
-    let mut last_used_side: usize = 0;
-    for l in word.chars() {
-        match sides
-            .iter()
-            .enumerate()
-            .filter(|(side_num, _side)| side_num != &last_used_side)
-            .filter(|(_side_num, &side)| side.contains(&l))
-            .map(|(side_num, _)| side_num)
-            .last()
-        {
-            Some(n) => {
-                last_used_side = n;
-            }
-            None => return false,
-        }
-    }
-    true
-}
-
-fn words_can_join(w1: &str, w2: &str) -> bool {
-    let end_of_first = w1.chars().nth_back(0).expect("Could not get last char");
-    let start_of_second = w2.chars().next().expect("Could not get first char");
-    end_of_first == start_of_second
-}
-
-fn create_sides(letters: &str) -> [[std::primitive::char; 3]; 4] {
-    assert!(
-        letters.len() >= 12,
-        "Did not hand in a long enough string of letters"
-    );
-
-    let mut res = [[' '; 3]; 4];
-
-    for (side_num, side) in letters.split_whitespace().enumerate() {
-        for (side_idx, c) in side.chars().enumerate() {
-            res[side_num][side_idx] = c;
-        }
-    }
-    res
-}
+use num_traits::cast::ToPrimitive;
+use std::{fs, time};
+use thousands::Separable;
 
 fn factorial(n: u64) -> BigUint {
     (1..=n).product()
 }
 
+#[derive(Parser)]
+#[command(
+    version = "0.6.0",
+    author = "Nathan McIntosh",
+    about = "Gives you solutions to the letter boxed puzzle"
+)]
+struct Cli {
+    /// The letters on each side of the box, in quotes and space separated.
+    /// E.g. "abc def ghi jkl".
+    /// Order of sides does not matter. Order of letters on sides does not matter
+    letters: String,
+
+    /// How many words in your solutions. More than 2 could potentially take a while to run.
+    #[arg(short, long, default_value = "2")]
+    number_of_words: usize,
+
+    /// Path to file of words that should be used
+    #[arg(short, long, default_value = "american_english_dictionary.txt")]
+    dictionary_file: String,
+}
+
 fn main() {
     let start_time = time::Instant::now();
 
-    let matches = App::new("letter_box")
-        .version("0.5.0")
-        .author("Nathan McIntosh")
-        .about("Gives you solutions to the letter boxed puzzle")
-        .arg(Arg::new("letters").help(
-            "The letters on each side of the box, in quotes and space separated.
-E.g. \"abc def ghi jkl\".
-Order of sides does not matter. Order of letters on sides does not matter",
-        ))
-        .arg(
-            Arg::new("n")
-                .short('n')
-                .long("number_of_words")
-                .help(
-                    "How many words in your solutions. More than 2 could
-potentially take a while to run.",
-                )
-                .required(false)
-                .default_value("2"),
-        )
-        .arg(
-            Arg::new("dictionary_file")
-                .short('d')
-                .long("dictionary_file")
-                .help("Path to file of words that should be used")
-                .required(false)
-                .default_value("american_english_dictionary.txt"),
-        )
-        .get_matches();
+    let cli = Cli::parse();
 
-    let letters = matches.value_of("letters").expect("Could not read letters");
-    let n_words: usize = matches
-        .value_of("n")
-        .expect("Could not get number of words")
-        .parse()
-        .expect("Could not parse into a number");
-    let sides = create_sides(letters);
+    let letters = &cli.letters;
+    let n_words = cli.number_of_words;
+    let board: Board = Board::new(letters);
 
-    let read_time = time::Instant::now();
-    let file_path = matches
-        .value_of("dictionary_file")
-        .expect("Did not properly get the name of the dictionary file");
+    let file_path = &cli.dictionary_file;
     let words = fs::read_to_string(file_path).expect("Unable to read file");
-    println!(
-        "Reading file took {:.3} seconds",
-        read_time.elapsed().as_secs_f32()
-    );
 
     let valid_check_time = time::Instant::now();
-    let mut valid_words = words
+    let mut start_words = words
         .lines()
         .filter(|s| !s.contains(char::is_uppercase))
         .filter(|&w| !w.ends_with("'s"))
-        .filter(|w| word_is_valid(w, &sides))
         .collect_vec();
-    valid_words.sort_unstable();
-    valid_words.dedup();
+    start_words.sort_unstable();
+    start_words.dedup();
+
+    // Encode the words, and filter out those that don't fit
+    let valid_words: Vec<BoardEncodedWord> = start_words
+        .iter()
+        .filter_map(|w| board.encode_word(w))
+        .collect();
 
     println!(
         "Found {} valid words in {:.3} seconds",
@@ -142,71 +65,29 @@ potentially take a while to run.",
     );
 
     let permutation_start_time = time::Instant::now();
-    valid_permutations(&valid_words, &sides, n_words).for_each(|pair| {
-        let joined = pair.into_iter().join(" - ");
-        println!("{}", joined);
+    valid_permutations(&valid_words, n_words).for_each(|pair| {
+        let words: Vec<String> = pair
+            .iter()
+            .map(|encoded_word| encoded_word.word.clone())
+            .collect();
+        let joined = words.join(" - ");
+        println!("{joined}");
     });
 
     let n_perms =
         factorial(valid_words.len() as u64) / factorial((valid_words.len() - n_words) as u64);
+    let n_perms_u64 = n_perms.to_u64().unwrap_or(u64::MAX);
     let perm_run_time = permutation_start_time.elapsed().as_secs_f64();
+    let perms_per_second = (n_perms_u64 as f64 / perm_run_time) as u64;
     println!(
-        "Examined {} permutations in {:.3} seconds\n",
-        n_perms, perm_run_time
+        "Examined {} permutations in {:.3} seconds ({} permutations/second)\n",
+        n_perms,
+        perm_run_time,
+        perms_per_second.separate_with_commas()
     );
 
     println!(
         "letter_box.rs -- {:.3} seconds",
         start_time.elapsed().as_secs_f32()
     );
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_words_can_join_1() {
-        assert!(words_can_join("hi", "it"))
-    }
-
-    #[test]
-    fn test_words_can_join_2() {
-        assert_ne!(words_can_join("hold", "nope"), true)
-    }
-
-    #[test]
-    #[should_panic(expected = "Did not hand in a long enough string of letters")]
-    fn test_create_sides_1() {
-        create_sides("hi\nbye");
-    }
-
-    #[test]
-    fn test_word_is_valid_1() {
-        let sides = create_sides("cmo fus nir eph");
-        assert!(word_is_valid("ship", &sides));
-    }
-
-    #[test]
-    fn test_word_is_valid_2() {
-        let sides = create_sides("cmo fus nir eph");
-        assert_eq!(word_is_valid("hello", &sides), false);
-    }
-
-    #[test]
-    fn test_word_is_valid_3() {
-        let sides = create_sides("elk moc jwb ura");
-        assert!(word_is_valid("jamb", &sides));
-    }
-
-    #[test]
-    fn test_word_is_valid_4() {
-        let sides = create_sides("elk moc jwb ura");
-        assert!(word_is_valid("blower", &sides));
-    }
-
-    #[test]
-    fn test_word_is_valid_5() {
-        let sides = create_sides("elk moc jwb ura");
-        assert!(word_is_valid("roebuck", &sides));
-    }
 }
